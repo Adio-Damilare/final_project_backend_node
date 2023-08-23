@@ -227,6 +227,12 @@ class CenterController {
             try {
                 const _b = req.body, { image, centerName } = _b, other = __rest(_b, ["image", "centerName"]);
                 let sentEmail = true;
+                console.log({
+                    cloud_name: process.env.CLOUD_NAME,
+                    api_key: process.env.CLOUD_API_KEY,
+                    api_secret: process.env.CLOUD_API_SECRET,
+                    secure: true,
+                });
                 if (req.body.email != 'anonymous') {
                     sentEmail = yield (0, Email_1.sendMail)({
                         reciever: req.body.email,
