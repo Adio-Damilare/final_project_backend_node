@@ -20,6 +20,7 @@ cloudinary.config({
 });
 
 
+
 export default class CenterController {
     public static async create(req: Request, res: Response, next: NextFunction) {
         try {
@@ -209,6 +210,12 @@ export default class CenterController {
             const {image, centerName, ...other} = req.body;
             let sentEmail = true;
            
+            console.log({
+                cloud_name: process.env.CLOUD_NAME,
+                api_key: process.env.CLOUD_API_KEY,
+                api_secret: process.env.CLOUD_API_SECRET,
+                secure:true,
+            })
             if (req.body.email != 'anonymous') {
                 sentEmail = await sendMail({
                     reciever: req.body.email,
