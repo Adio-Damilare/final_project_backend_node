@@ -1,9 +1,7 @@
 import {Model, DataTypes} from 'sequelize';
 import {sequelize} from '../connection';
 import Orphanagecenter from './Orphangecenter';
-import { Months } from '../controller/Email';
 
-const month=Months[new Date().getMonth()]
 export default class Pledge extends Model {}
 Pledge.init(
     {
@@ -20,6 +18,10 @@ Pledge.init(
             type: DataTypes.STRING,
             allowNull: true
         },
+        centerName: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         donate: {
             type: DataTypes.STRING,
             allowNull: true
@@ -29,9 +31,9 @@ Pledge.init(
             allowNull: true
         },
         month:{
-            type: DataTypes.STRING,
+            type: DataTypes.BIGINT,
             allowNull: true,
-            defaultValue:month
+            defaultValue:new Date().getMonth()
         },
         email:{
             type: DataTypes.STRING,

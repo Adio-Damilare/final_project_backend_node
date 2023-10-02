@@ -6,8 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const connection_1 = require("../connection");
 const Orphangecenter_1 = __importDefault(require("./Orphangecenter"));
-const Email_1 = require("../controller/Email");
-const month = Email_1.Months[new Date().getMonth()];
 class Pledge extends sequelize_1.Model {
 }
 exports.default = Pledge;
@@ -25,6 +23,10 @@ Pledge.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true
     },
+    centerName: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true
+    },
     donate: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true
@@ -34,9 +36,9 @@ Pledge.init({
         allowNull: true
     },
     month: {
-        type: sequelize_1.DataTypes.STRING,
+        type: sequelize_1.DataTypes.BIGINT,
         allowNull: true,
-        defaultValue: month
+        defaultValue: new Date().getMonth()
     },
     email: {
         type: sequelize_1.DataTypes.STRING,

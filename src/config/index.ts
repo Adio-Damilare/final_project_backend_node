@@ -1,6 +1,5 @@
 import env from 'dotenv';
 env.config();
-console.log(process.env)
 export const database_config: any = {
     HOST: process.env.DATABASE_HOST || '',
     USER: process.env.DATABASE_USER || '',

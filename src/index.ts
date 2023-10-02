@@ -19,15 +19,15 @@ Server.use(
         methods: ['POST', 'GET', 'DELETE', 'PATCH', 'PUT'],
         origin: '*',
         optionsSuccessStatus: 200
-
     })
 );
 (async () => {
     try {
-        await sequelize.authenticate().then((res)=>res).catch((err)=>console.log(err.message));
-        console.log('You are welcome to the databse');
-        await sequelize.sync();
-        console.log('connect to databse successfully');
+        await sequelize.authenticate().then(async(res)=>{
+            // await sequelize.drop()
+            await sequelize.sync();
+            console.log('connect to databse successfully');
+        }).catch((err)=>console.log(`Failed to connect to database with the error of ${err.message}`));
     } catch (err: any) {
         console.log(err.message);
     }

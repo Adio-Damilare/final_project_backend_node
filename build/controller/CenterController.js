@@ -40,7 +40,7 @@ cloudinary_1.v2.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
     api_secret: process.env.ClOUD_API_SECRET,
-    secure: true,
+    secure: true
 });
 class CenterController {
     static create(req, res, next) {
@@ -94,13 +94,14 @@ class CenterController {
                     });
                 }
                 const hashpassword = yield CenterController.hash_password(req.body.password);
-                const create = yield Orphangecenter_1.default.create(Object.assign(Object.assign({}, req.body), { acctNo: checkBank.data.account_number, account_name: checkBank.data.account_name, bank: req.body.bankDetails.bank, password: hashpassword })).then((_res) => {
+                const create = yield Orphangecenter_1.default.create(Object.assign(Object.assign({}, req.body), { acctNo: checkBank.data.account_number, account_name: checkBank.data.account_name, bank: req.body.bankDetails.bank, password: hashpassword }))
+                    .then((_res) => {
                     return res.status(200).json({
                         message: 'Center created successfully',
                         status: true
                     });
-                }).catch((_errror) => {
-                    console.log(_errror.message);
+                })
+                    .catch((_errror) => {
                     return res.status(500).json({
                         message: 'Center created successfully',
                         status: false
@@ -222,19 +223,19 @@ class CenterController {
             }
         });
     }
-    static MakeDonation(req, res, next) {
+    static MakeDonation(req) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const _b = req.body, { image, centerName } = _b, other = __rest(_b, ["image", "centerName"]);
+                const { image, centerName } = req, other = __rest(req, ["image", "centerName"]);
                 let sentEmail = true;
-                if (req.body.email != 'anonymous') {
+                if (req.email != 'anonymous') {
                     sentEmail = yield (0, Email_1.sendMail)({
-                        reciever: req.body.email,
+                        reciever: req.email,
                         subject: 'You have successfully donated!!',
                         message: `
                     <div style="min-height:70vh; display:flex;align-items:center; justify-content:center;">
                      <p style="width:100%;text-align:center; font-size:18px">
-                    Thank you<i> ${req.body.firstname}  ${req.body.lastname}</i> for donating ${req.body.donate} to ${centerName} center.<br/>
+                    Thank you<i> ${req.firstname}  ${req.lastname}</i> for donating ${req.donate} to ${centerName} center.<br/>
                     </p>
                 </div>`
                     })
@@ -242,10 +243,10 @@ class CenterController {
                         .catch((err) => false);
                 }
                 if (!sentEmail) {
-                    return res.status(200).json({
+                    return {
                         message: 'Something went wrong ',
                         status: false
-                    });
+                    };
                 }
                 let cloudImage = { image: 'null', status: true };
                 if (image !== 'null') {
@@ -264,29 +265,65 @@ class CenterController {
                     });
                 }
                 if (!(cloudImage === null || cloudImage === void 0 ? void 0 : cloudImage.status)) {
-                    return res.status(200).json({
+                    return {
                         message: 'something went wrong',
                         status: false
-                    });
+                    };
                 }
-                Donation_1.default.create(Object.assign(Object.assign({}, other), { image: cloudImage === null || cloudImage === void 0 ? void 0 : cloudImage.image }))
+                return Donation_1.default.create(Object.assign(Object.assign({}, other), { image: cloudImage === null || cloudImage === void 0 ? void 0 : cloudImage.image }))
                     .then((result) => {
-                    res.status(200).json({
+                    return {
                         message: 'Successfuly donated',
                         status: true
-                    });
+                    };
                 })
                     .catch((err) => {
+                    return {
+                        message: 'Something went wrong',
+                        status: false
+                    };
+                });
+            }
+            catch (ex) {
+                return {
+                    message: ex.message,
+                    status: false
+                };
+            }
+        });
+    }
+    static MakeDonations(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield CenterController.MakeDonation(req.body);
+            res.status(200).json(result);
+        });
+    }
+    static FulfillPledge(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield CenterController.MakeDonation(req.body);
+            if (result.status) {
+                return Pledge_1.default.findOne({
+                    where: {
+                        email: req.body.email
+                    }
+                }).then((_res) => {
+                    return _res === null || _res === void 0 ? void 0 : _res.update({
+                        month: new Date().getMonth() == 11 ? 0 : new Date().getMonth() + 1
+                    });
+                }).then((_res) => {
+                    res.status(200).json({
+                        message: "successfully fulfill the pledge",
+                        status: true
+                    });
+                }).catch(err => {
                     console.log(err.message);
                     res.status(200).json({
-                        message: 'Something went wrong',
+                        message: 'something went wrong',
                         status: false
                     });
                 });
             }
-            catch (ex) {
-                next(ex);
-            }
+            res.status(200).json(result);
         });
     }
     static MakePledge(req, res, next) {
@@ -308,7 +345,7 @@ class CenterController {
                         message: 'Something went wrong ',
                         status: false
                     });
-                Pledge_1.default.create(rest)
+                Pledge_1.default.create(req.body)
                     .then((_response) => {
                     res.status(200).json({
                         message: 'Successfuly pledge',
@@ -338,21 +375,18 @@ class CenterController {
                         status: false
                     });
                 }
-                console.log(rest, response);
                 Orphangecenter_1.default.findByPk(response.data.unique_id)
                     .then((response) => {
                     if (response)
                         return response === null || response === void 0 ? void 0 : response.update(rest);
                 })
                     .then((response) => {
-                    console.log(response);
                     return res.status(200).json({
                         message: 'success update',
                         status: true
                     });
                 })
                     .catch((_err) => {
-                    console.log(_err);
                     return res.status(200).json({
                         message: 'Failed to update',
                         status: false
@@ -439,7 +473,8 @@ CenterController.verify_data = (encoded_string, key) => __awaiter(void 0, void 0
 CenterController.Sort = (array) => {
     return array === null || array === void 0 ? void 0 : array.sort((a, b) => b.createdAt.localCompare(a.createdAt));
 };
-node_cron_1.default.schedule('38-45 17 1-31 1-12 *', function () {
+node_cron_1.default.schedule('0 12 * * *', function () {
+    console.log('heeee');
     const s = new SendMailToPromise();
 });
 class SendMailToPromise {
@@ -448,38 +483,39 @@ class SendMailToPromise {
     }
     static GetUsers() {
         return __awaiter(this, void 0, void 0, function* () {
-            const userPledges = yield Pledge_1.default.findAll({
+            Pledge_1.default.findAll({
                 where: {
-                    day: {
-                        [sequelize_1.Op.lte]: new Date().getDay()
-                    },
-                    month: Email_1.Months[new Date().getMonth()]
+                    month: {
+                        [sequelize_1.Op.lt]: new Date().getMonth()
+                    }
                 }
             })
                 .then((res) => {
                 if (res == null)
-                    return console.log('No promise found');
-                res.map((val) => {
-                    (0, Email_1.sendMail)({
-                        reciever: val.dataValues.email,
-                        subject: 'Remindering email of the pledge you promise',
-                        message: `                    
-                    <div class="" style="font-family: poppin; width: 100%; background:rgb(78, 73, 73)">
-             <div class="row" style="width: 90%; margin: 40px auto;border: 1px solid rgb(230, 227, 227);
-                  padding: 20px;box-shadow: 5px 5px 3px 3px rgb(179, 172, 172); border-radius: 10px; background:#fff">
-             <div style="text-align: center; word-spacing: 1px;">
-            <p class="" style="font-size: 29px;">Good day ${val.dataValues.firstname} ${val.dataValues.lastname}, this is to remind you the pledge you promise ${val.dataValues.centerName}center monthly. <br/>
-            To fulfill your promise <a href=""  style='color:blue '>click here</a>
-            </p>
-            <b style="font-size: 18px;">
-                note: This email will be resend to you tomorrow to stop the email   <a href="" style='color:blue '>click here</a>
-                </b>
-         </div>
-        </div>
-    </div>
-`
+                    return;
+                if (res.dataValues.day <= new Date().getDay()) {
+                    res.map((val) => {
+                        const url = `${process.env.FRONT_END_URL}center/fulfillpledge?email=${val.dataValues.email}&firstname=${val.dataValues.firstname}&lastname=${val.dataValues.lastname}&centerName=${val.dataValues.centerName}&donate=${val.dataValues.donate}&orphan_id=${val.dataValues.orphan_id}&month=${val.dataValues.month}`;
+                        (0, Email_1.sendMail)({
+                            reciever: val.dataValues.email,
+                            subject: 'Remindering email of the pledge you promise',
+                            message: `                    
+                            <div class="" style="font-family: poppin; width: 100%; min-height: 50vh; ">
+                            <div class="row" style="width: 80%; margin: 40px auto; padding: 20px">
+                                <div style="text-align: center; word-spacing: 1px">
+                                    <p class="" style="font-size: 29px">
+                                        Good day ${val.dataValues.firstname} ${val.dataValues.lastname}, this is a soft reminder of your pledge you promise ${val.dataValues.centerName}center monthly. <br />
+                                        To fulfill your promise
+                                        
+                                         <a href="${url}" target='_blank' style="color: blue;display: block;width:100%; padding:20px;background:blue;color:white; border-radius:10px">click here</a>
+                                    </p>
+                                    <b style="font-size: 18px"> note: This soft reminder email will be resend to you tomorrow </b>
+                                </div>
+                            </div>
+                        </div> `
+                        });
                     });
-                });
+                }
             })
                 .catch((_err) => {
                 return null;

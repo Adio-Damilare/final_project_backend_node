@@ -26,7 +26,6 @@ export const sendMail=async(data:any)=>{
     }
 
     let result=await transporter.sendMail(mailOptions).then((_res)=>{
-        console.log("done")
         return true;
     }).catch((_error)=>{
         console.log(_error.message)
@@ -35,4 +34,4 @@ export const sendMail=async(data:any)=>{
     return result;
 }
 
-export const Months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+// export const Months = ["January","February","March","April","May","June","July","August","September","October","November","December"]

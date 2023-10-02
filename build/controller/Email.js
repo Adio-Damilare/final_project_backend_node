@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Months = exports.sendMail = void 0;
+exports.sendMail = void 0;
 const nodemailer_1 = require("nodemailer");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -34,7 +34,6 @@ const sendMail = (data) => __awaiter(void 0, void 0, void 0, function* () {
         html: data.message
     };
     let result = yield transporter.sendMail(mailOptions).then((_res) => {
-        console.log("done");
         return true;
     }).catch((_error) => {
         console.log(_error.message);
@@ -43,4 +42,4 @@ const sendMail = (data) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 exports.sendMail = sendMail;
-exports.Months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// export const Months = ["January","February","March","April","May","June","July","August","September","October","November","December"]

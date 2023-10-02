@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.database_config = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-console.log(process.env);
 exports.database_config = {
     HOST: process.env.DATABASE_HOST || '',
     USER: process.env.DATABASE_USER || '',

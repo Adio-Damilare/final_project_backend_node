@@ -8,7 +8,7 @@ import Donation from '../models/Donation';
 import {v2 as cloudinary} from 'cloudinary';
 import axios from 'axios';
 import Pledge from '../models/Pledge';
-import {Months, sendMail} from './Email';
+import {sendMail} from './Email';
 import cron from 'node-cron';
 dotEnv.config();
 
@@ -16,10 +16,8 @@ cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
     api_secret: process.env.ClOUD_API_SECRET,
-    secure:true,
+    secure: true
 });
-
-
 
 export default class CenterController {
     public static async create(req: Request, res: Response, next: NextFunction) {
@@ -80,20 +78,19 @@ export default class CenterController {
                 account_name: checkBank.data.account_name,
                 bank: req.body.bankDetails.bank,
                 password: hashpassword
-            }).then((_res)=>{
-
-                return res.status(200).json({
-                    message: 'Center created successfully',
-                    status: true
+            })
+                .then((_res) => {
+                    return res.status(200).json({
+                        message: 'Center created successfully',
+                        status: true
+                    });
+                })
+                .catch((_errror) => {
+                    return res.status(500).json({
+                        message: 'Center created successfully',
+                        status: false
+                    });
                 });
-            }).catch((_errror)=>{
-                console.log(_errror.message)
-                return res.status(500).json({
-                    message: 'Center created successfully',
-                    status: false
-                });
-
-            });
         } catch (ex) {
             next(ex);
         }
@@ -180,7 +177,7 @@ export default class CenterController {
 
     public static async Get_All_Center(req: Request, res: Response, next: NextFunction) {
         try {
-           Orphanagecenter.findAll({
+            Orphanagecenter.findAll({
                 where:
                     req.query.state === 'ANY' && req.query.local == 'ANY'
                         ? {}
@@ -205,18 +202,18 @@ export default class CenterController {
         }
     }
 
-    public static async MakeDonation(req: Request, res: Response, next: NextFunction) {
+    private static async MakeDonation(req: any) {
         try {
-            const {image, centerName, ...other} = req.body;
+            const {image, centerName, ...other} = req;
             let sentEmail = true;
-            if (req.body.email != 'anonymous') {
+            if (req.email != 'anonymous') {
                 sentEmail = await sendMail({
-                    reciever: req.body.email,
+                    reciever: req.email,
                     subject: 'You have successfully donated!!',
                     message: `
                     <div style="min-height:70vh; display:flex;align-items:center; justify-content:center;">
                      <p style="width:100%;text-align:center; font-size:18px">
-                    Thank you<i> ${req.body.firstname}  ${req.body.lastname}</i> for donating ${req.body.donate} to ${centerName} center.<br/>
+                    Thank you<i> ${req.firstname}  ${req.lastname}</i> for donating ${req.donate} to ${centerName} center.<br/>
                     </p>
                 </div>`
                 })
@@ -224,13 +221,13 @@ export default class CenterController {
                     .catch((err) => false);
             }
             if (!sentEmail) {
-                return res.status(200).json({
+                return {
                     message: 'Something went wrong ',
                     status: false
-                });
+                };
             }
             let cloudImage: any = {image: 'null', status: true};
-            
+
             if (image !== 'null') {
                 cloudImage = await cloudinary.uploader
                     .upload(image, {public_id: 'olympic_flag', resource_type: 'image'})
@@ -246,34 +243,66 @@ export default class CenterController {
                         };
                     });
             }
-            
+
             if (!cloudImage?.status) {
-                return res.status(200).json({
+                return {
                     message: 'something went wrong',
                     status: false
-                });
+                };
             }
-            
-            
-           Donation.create({...other, image: cloudImage?.image})
+
+            return Donation.create({...other, image: cloudImage?.image})
                 .then((result) => {
-                    res.status(200).json({
+                    return {
                         message: 'Successfuly donated',
                         status: true
-                    });
+                    };
                 })
                 .catch((err) => {
-                    console.log(err.message)
-                    res.status(200).json({
+                    return {
                         message: 'Something went wrong',
                         status: false
-                    });
+                    };
                 });
-        } catch (ex) {
-            next(ex);
+        } catch (ex: any) {
+            return {
+                message: ex.message,
+                status: false
+            };
         }
     }
-    
+
+    public static async MakeDonations(req: Request, res: Response, next: NextFunction) {
+        const result = await CenterController.MakeDonation(req.body);
+        res.status(200).json(result);
+    }
+    public static async FulfillPledge(req: Request, res: Response, next: NextFunction) {
+        const result = await CenterController.MakeDonation(req.body);
+        if (result.status) {
+           return Pledge.findOne({
+                where: {
+                    email: req.body.email
+                }
+            }).then((_res) => {
+               return _res?.update({
+                    month: new Date().getMonth() == 11 ? 0 : new Date().getMonth() + 1
+                });
+            }).then((_res)=>{
+                res.status(200).json({
+                    message:"successfully fulfill the pledge",
+                    status:true
+                })
+            }).catch(err=>{
+                console.log(err.message)
+                res.status(200).json({
+                    message:'something went wrong',
+                    status:false
+                })
+            });
+        }
+      res.status(200).json(result);
+    }
+
     public static async MakePledge(req: Request, res: Response, next: NextFunction) {
         try {
             const {centerName, ...rest} = req.body;
@@ -294,7 +323,7 @@ export default class CenterController {
                     status: false
                 });
 
-             Pledge.create(rest)
+            Pledge.create(req.body)
                 .then((_response) => {
                     res.status(200).json({
                         message: 'Successfuly pledge',
@@ -322,20 +351,17 @@ export default class CenterController {
                     status: false
                 });
             }
-            console.log(rest, response);
-             Orphanagecenter.findByPk(response.data.unique_id)
+            Orphanagecenter.findByPk(response.data.unique_id)
                 .then((response) => {
                     if (response) return response?.update(rest);
                 })
                 .then((response) => {
-                    console.log(response);
                     return res.status(200).json({
                         message: 'success update',
                         status: true
                     });
                 })
                 .catch((_err) => {
-                    console.log(_err);
                     return res.status(200).json({
                         message: 'Failed to update',
                         status: false
@@ -421,7 +447,8 @@ export default class CenterController {
     };
 }
 
-cron.schedule('38-45 17 1-31 1-12 *', function () {
+cron.schedule('0 12 * * *', function () {
+    console.log('heeee');
     const s = new SendMailToPromise();
 });
 
@@ -429,38 +456,41 @@ class SendMailToPromise {
     constructor() {
         SendMailToPromise.GetUsers();
     }
+
     private static async GetUsers() {
-        const userPledges = await Pledge.findAll({
+        Pledge.findAll({
             where: {
-                day: {
-                    [Op.lte]: new Date().getDay()
-                },
-                month: Months[new Date().getMonth()]
+                month: {
+                    [Op.lt]: new Date().getMonth()
+                }
             }
         })
             .then((res: any) => {
-                if (res == null) return console.log('No promise found');
-                res.map((val: any) => {
-                    sendMail({
-                        reciever: val.dataValues.email,
-                        subject: 'Remindering email of the pledge you promise',
-                        message: `                    
-                    <div class="" style="font-family: poppin; width: 100%; background:rgb(78, 73, 73)">
-             <div class="row" style="width: 90%; margin: 40px auto;border: 1px solid rgb(230, 227, 227);
-                  padding: 20px;box-shadow: 5px 5px 3px 3px rgb(179, 172, 172); border-radius: 10px; background:#fff">
-             <div style="text-align: center; word-spacing: 1px;">
-            <p class="" style="font-size: 29px;">Good day ${val.dataValues.firstname} ${val.dataValues.lastname}, this is to remind you the pledge you promise ${val.dataValues.centerName}center monthly. <br/>
-            To fulfill your promise <a href=""  style='color:blue '>click here</a>
-            </p>
-            <b style="font-size: 18px;">
-                note: This email will be resend to you tomorrow to stop the email   <a href="" style='color:blue '>click here</a>
-                </b>
-         </div>
-        </div>
-    </div>
-`
+                if (res == null) return;
+
+                if (res.dataValues.day <= new Date().getDay()) {
+                    res.map((val: any) => {
+                        const url = `${process.env.FRONT_END_URL}center/fulfillpledge?email=${val.dataValues.email}&firstname=${val.dataValues.firstname}&lastname=${val.dataValues.lastname}&centerName=${val.dataValues.centerName}&donate=${val.dataValues.donate}&orphan_id=${val.dataValues.orphan_id}&month=${val.dataValues.month}`;
+                        sendMail({
+                            reciever: val.dataValues.email,
+                            subject: 'Remindering email of the pledge you promise',
+                            message: `                    
+                            <div class="" style="font-family: poppin; width: 100%; min-height: 50vh; ">
+                            <div class="row" style="width: 80%; margin: 40px auto; padding: 20px">
+                                <div style="text-align: center; word-spacing: 1px">
+                                    <p class="" style="font-size: 29px">
+                                        Good day ${val.dataValues.firstname} ${val.dataValues.lastname}, this is a soft reminder of your pledge you promise ${val.dataValues.centerName}center monthly. <br />
+                                        To fulfill your promise
+                                        
+                                         <a href="${url}" target='_blank' style="color: blue;display: block;width:100%; padding:20px;background:blue;color:white; border-radius:10px">click here</a>
+                                    </p>
+                                    <b style="font-size: 18px"> note: This soft reminder email will be resend to you tomorrow </b>
+                                </div>
+                            </div>
+                        </div> `
+                        });
                     });
-                });
+                }
             })
             .catch((_err) => {
                 return null;

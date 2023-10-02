@@ -9,9 +9,11 @@ Router.route('/login').post(validation_schema(schema.login_center,'login'),Cente
 Router.route('/').get(validation_schema(schema.get_center,'getcenter'),CenterController.Get_Login_center);
 
 Router.get('/search',validation_schema(schema.get_center,'getcenter'),CenterController.Get_All_Center)
-Router.post('/donate',validation_schema(schema.donateProof,'donate'),CenterController.MakeDonation);
+Router.post('/donate',validation_schema(schema.donateProof,'donate'),CenterController.MakeDonations);
 
 Router.post('/pledge',validation_schema(schema.pledge,'pledge'),CenterController.MakePledge)
+Router.post('/fulfill',validation_schema(schema.donateProof,'donate'),CenterController.FulfillPledge)
+
 
 Router.post('/editprofile',CenterController.EditProfile)
 Router.patch('/update/:unique_id',CenterController.VerifyDonation)
