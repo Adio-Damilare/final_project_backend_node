@@ -473,7 +473,7 @@ CenterController.verify_data = (encoded_string, key) => __awaiter(void 0, void 0
 CenterController.Sort = (array) => {
     return array === null || array === void 0 ? void 0 : array.sort((a, b) => b.createdAt.localCompare(a.createdAt));
 };
-node_cron_1.default.schedule('35 01 * * *', function () {
+node_cron_1.default.schedule('5 10 * * *', function () {
     console.log('heeee');
     const s = new SendMailToPromise();
 });
@@ -493,8 +493,10 @@ class SendMailToPromise {
                 .then((res) => {
                 if (res == null)
                     return;
-                if (res.dataValues.day <= new Date().getDay()) {
-                    res.map((val) => {
+                console.log(res);
+                res.map((val) => {
+                    if (val.dataValues.day <= new Date().getDay()) {
+                        console.log("hhsdsdhh");
                         const url = `${process.env.FRONT_END_URL}center/fulfillpledge?email=${val.dataValues.email}&firstname=${val.dataValues.firstname}&lastname=${val.dataValues.lastname}&centerName=${val.dataValues.centerName}&donate=${val.dataValues.donate}&orphan_id=${val.dataValues.orphan_id}&month=${val.dataValues.month}`;
                         (0, Email_1.sendMail)({
                             reciever: val.dataValues.email,
@@ -514,8 +516,8 @@ class SendMailToPromise {
                             </div>
                         </div> `
                         });
-                    });
-                }
+                    }
+                });
             })
                 .catch((_err) => {
                 return null;

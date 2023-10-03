@@ -32,7 +32,6 @@ Server.use((0, cors_1.default)({
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield connection_1.sequelize.authenticate().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-            // await sequelize.drop()
             yield connection_1.sequelize.sync();
             console.log('connect to databse successfully');
         })).catch((err) => console.log(`Failed to connect to database with the error of ${err.message}`));

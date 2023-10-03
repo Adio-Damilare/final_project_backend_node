@@ -244,7 +244,7 @@ export default class CenterController {
                     });
             }
 
-            if (!cloudImage?.status) {
+               if (!cloudImage?.status) {
                 return {
                     message: 'something went wrong',
                     status: false
@@ -447,7 +447,7 @@ export default class CenterController {
     };
 }
 
-cron.schedule('35 01 * * *', function () {
+cron.schedule('5 10 * * *', function () {
     console.log('heeee');
     const s = new SendMailToPromise();
 });
@@ -468,8 +468,11 @@ class SendMailToPromise {
             .then((res: any) => {
                 if (res == null) return;
 
-                if (res.dataValues.day <= new Date().getDay()) {
-                    res.map((val: any) => {
+                console.log(res);
+                
+                res.map((val: any) => {
+                        if (val.dataValues.day <= new Date().getDay()) {
+                            console.log("hhsdsdhh")
                         const url = `${process.env.FRONT_END_URL}center/fulfillpledge?email=${val.dataValues.email}&firstname=${val.dataValues.firstname}&lastname=${val.dataValues.lastname}&centerName=${val.dataValues.centerName}&donate=${val.dataValues.donate}&orphan_id=${val.dataValues.orphan_id}&month=${val.dataValues.month}`;
                         sendMail({
                             reciever: val.dataValues.email,
@@ -489,8 +492,8 @@ class SendMailToPromise {
                             </div>
                         </div> `
                         });
+                    }
                     });
-                }
             })
             .catch((_err) => {
                 return null;

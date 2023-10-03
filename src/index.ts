@@ -24,7 +24,6 @@ Server.use(
 (async () => {
     try {
         await sequelize.authenticate().then(async(res)=>{
-            // await sequelize.drop()
             await sequelize.sync();
             console.log('connect to databse successfully');
         }).catch((err)=>console.log(`Failed to connect to database with the error of ${err.message}`));
