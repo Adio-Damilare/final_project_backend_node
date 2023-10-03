@@ -208,6 +208,7 @@ class CenterController {
                     attributes: { exclude: ['password', 'updatedAt', 'createdAt'] }
                 })
                     .then((found) => {
+                    console.log(found);
                     found = found === null || found === void 0 ? void 0 : found.map((data) => (Object.assign({}, data.dataValues)));
                     return res.status(200).json({
                         status: true,

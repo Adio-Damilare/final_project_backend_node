@@ -188,6 +188,7 @@ export default class CenterController {
                 attributes: {exclude: ['password', 'updatedAt', 'createdAt']}
             })
                 .then((found) => {
+                    console.log(found);
                     found = found?.map((data: any) => ({...data.dataValues}));
                     return res.status(200).json({
                         status: true,
@@ -448,7 +449,7 @@ export default class CenterController {
 }
 
 cron.schedule('5 10 * * *', function () {
-    console.log('heeee');
+    console.log('heeee');   
     const s = new SendMailToPromise();
 });
 
