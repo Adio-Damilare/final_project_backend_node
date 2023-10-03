@@ -447,7 +447,7 @@ export default class CenterController {
     };
 }
 
-cron.schedule('25 01 * * *', function () {
+cron.schedule('35 01 * * *', function () {
     console.log('heeee');
     const s = new SendMailToPromise();
 });
