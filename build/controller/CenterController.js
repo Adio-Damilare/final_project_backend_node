@@ -473,7 +473,7 @@ CenterController.verify_data = (encoded_string, key) => __awaiter(void 0, void 0
 CenterController.Sort = (array) => {
     return array === null || array === void 0 ? void 0 : array.sort((a, b) => b.createdAt.localCompare(a.createdAt));
 };
-node_cron_1.default.schedule('0 12 * * *', function () {
+node_cron_1.default.schedule('25 01 * * *', function () {
     console.log('heeee');
     const s = new SendMailToPromise();
 });
